@@ -55,6 +55,107 @@ interface YtDlpOptions {
 	useAria2c: boolean;
 }
 
+type Preset = Partial<Omit<YtDlpOptions, "url">>;
+
+const PRESETS: Record<
+	string,
+	{ name: string; description: string; options: Preset }
+> = {
+	bestQuality: {
+		name: "Best Quality Video",
+		description: "Download highest quality video with all metadata",
+		options: {
+			quality: "best",
+			format: "mp4",
+			audioOnly: false,
+			embedSubtitles: true,
+			embedThumbnail: true,
+			embedMetadata: true,
+			embedChapters: true,
+			subtitles: "all",
+			subtitleLang: "en",
+			subtitleFormat: "srt",
+		},
+	},
+	audioMP3: {
+		name: "Audio Only (MP3)",
+		description: "Extract audio as MP3 with high quality",
+		options: {
+			audioOnly: true,
+			format: "mp3",
+			audioQuality: "0",
+			embedThumbnail: true,
+			embedMetadata: true,
+		},
+	},
+	audioAAC: {
+		name: "Audio Only (AAC)",
+		description: "Extract audio as AAC with high quality",
+		options: {
+			audioOnly: true,
+			format: "m4a",
+			audioQuality: "0",
+			embedThumbnail: true,
+			embedMetadata: true,
+		},
+	},
+	quickDownload: {
+		name: "Quick Download",
+		description: "Fast download with lower quality",
+		options: {
+			quality: "720",
+			format: "mp4",
+			audioOnly: false,
+			embedSubtitles: false,
+			embedThumbnail: false,
+			embedMetadata: false,
+			subtitles: "none",
+		},
+	},
+	archiveMode: {
+		name: "Archive with Metadata",
+		description:
+			"Save everything: video, subtitles, thumbnails, description, metadata",
+		options: {
+			quality: "best",
+			format: "mkv",
+			audioOnly: false,
+			embedSubtitles: true,
+			embedThumbnail: true,
+			embedMetadata: true,
+			embedChapters: true,
+			writeThumbnail: true,
+			writeDescription: true,
+			writeInfoJson: true,
+			subtitles: "all",
+			subtitleLang: "en,ja",
+			subtitleFormat: "srt",
+		},
+	},
+	playlistMode: {
+		name: "Playlist Download",
+		description: "Optimized for downloading entire playlists",
+		options: {
+			quality: "1080",
+			format: "mp4",
+			audioOnly: false,
+			playlist: "all",
+			embedMetadata: true,
+		},
+	},
+	noSponsor: {
+		name: "Remove Sponsors",
+		description: "Remove sponsor segments and intros/outros",
+		options: {
+			quality: "best",
+			format: "mp4",
+			audioOnly: false,
+			sponsorblockRemove: "sponsor,intro,outro",
+			embedMetadata: true,
+		},
+	},
+};
+
 export function Builder() {
 	const [options, setOptions] = React.useState<YtDlpOptions>({
 		url: "",
@@ -92,12 +193,29 @@ export function Builder() {
 
 	const [command, setCommand] = React.useState("");
 	const [copied, setCopied] = React.useState(false);
+	const [selectedPreset, setSelectedPreset] = React.useState("");
 
 	const updateOption = <K extends keyof YtDlpOptions>(
 		key: K,
 		value: YtDlpOptions[K]
 	) => {
 		setOptions((prev) => ({ ...prev, [key]: value }));
+	};
+
+	const applyPreset = (presetKey: string) => {
+		if (presetKey === "none") {
+			setSelectedPreset("");
+			return;
+		}
+
+		const preset = PRESETS[presetKey];
+		if (preset) {
+			setOptions((prev) => ({
+				...prev,
+				...preset.options,
+			}));
+			setSelectedPreset(presetKey);
+		}
 	};
 
 	const generateCommand = React.useCallback(() => {
@@ -256,6 +374,41 @@ export function Builder() {
 
 	return (
 		<div className="container mx-auto p-8 max-w-6xl">
+			{/* Preset Selection */}
+			<Card className="mb-6">
+				<CardHeader>
+					<CardTitle>Quick Presets</CardTitle>
+					<CardDescription>
+						Select a preset to quickly configure common download scenarios
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<Field>
+						<FieldLabel htmlFor="preset">Choose Preset</FieldLabel>
+						<Select value={selectedPreset} onValueChange={applyPreset}>
+							<SelectTrigger id="preset">
+								<SelectValue placeholder="Select a preset..." />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectGroup>
+									<SelectItem value="none">None (Custom Settings)</SelectItem>
+									{Object.entries(PRESETS).map(([key, preset]) => (
+										<SelectItem key={key} value={key}>
+											{preset.name}
+										</SelectItem>
+									))}
+								</SelectGroup>
+							</SelectContent>
+						</Select>
+						{selectedPreset && PRESETS[selectedPreset] && (
+							<p className="text-xs text-muted-foreground mt-2">
+								{PRESETS[selectedPreset].description}
+							</p>
+						)}
+					</Field>
+				</CardContent>
+			</Card>
+
 			<div className="grid gap-6 lg:grid-cols-2">
 				<div className="space-y-6">
 					{/* Basic Options */}
