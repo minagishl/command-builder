@@ -1,0 +1,18 @@
+# Dependencies
+node_modules
+bun.lock
+
+# Production
+dist
+build
+
+# Misc
+.DS_Store
+*.log
+
+# IDE
+.vscode
+.idea
+
+# Git
+.git
