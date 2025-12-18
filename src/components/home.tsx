@@ -52,7 +52,7 @@ const TOOLS: Tool[] = [
 		name: "Git",
 		description: "Version control and collaboration",
 		path: "/git",
-		available: false,
+		available: true,
 	},
 	{
 		id: "custom",
