@@ -46,7 +46,10 @@ interface YtDlpOptions {
 	playlistStart: string;
 	playlistEnd: string;
 	rateLimit: string;
-	cookies: string;
+	cookieSource: string;
+	cookieFile: string;
+	cookieBrowser: string;
+	cookieProfile: string;
 	useAria2c: boolean;
 }
 
@@ -67,7 +70,10 @@ export function Builder() {
 		playlistStart: "",
 		playlistEnd: "",
 		rateLimit: "",
-		cookies: "",
+		cookieSource: "none",
+		cookieFile: "",
+		cookieBrowser: "chrome",
+		cookieProfile: "",
 		useAria2c: false,
 	});
 
@@ -157,9 +163,17 @@ export function Builder() {
 		if (options.rateLimit) {
 			parts.push("--limit-rate", options.rateLimit);
 		}
-		if (options.cookies) {
-			parts.push("--cookies", options.cookies);
+
+		// Cookies
+		if (options.cookieSource === "file" && options.cookieFile) {
+			parts.push("--cookies", options.cookieFile);
+		} else if (options.cookieSource === "browser" && options.cookieBrowser) {
+			const browserSpec = options.cookieProfile
+				? `${options.cookieBrowser}:${options.cookieProfile}`
+				: options.cookieBrowser;
+			parts.push("--cookies-from-browser", browserSpec);
 		}
+
 		if (options.useAria2c) {
 			parts.push("--external-downloader", "aria2c");
 		}
@@ -518,17 +532,97 @@ export function Builder() {
 								</Field>
 
 								<Field>
-									<FieldLabel htmlFor="cookies">Cookies File Path</FieldLabel>
-									<Input
-										id="cookies"
-										placeholder="/path/to/cookies.txt"
-										value={options.cookies}
-										onChange={(e) => updateOption("cookies", e.target.value)}
-									/>
+									<FieldLabel htmlFor="cookieSource">Cookie Source</FieldLabel>
+									<Select
+										value={options.cookieSource}
+										onValueChange={(value) =>
+											updateOption("cookieSource", value)
+										}
+									>
+										<SelectTrigger id="cookieSource">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectItem value="none">None</SelectItem>
+												<SelectItem value="file">Cookie File</SelectItem>
+												<SelectItem value="browser">Browser Cookies</SelectItem>
+											</SelectGroup>
+										</SelectContent>
+									</Select>
 									<p className="text-xs text-muted-foreground mt-1">
-										Path to Netscape format cookies file
+										Use cookies for authentication
 									</p>
 								</Field>
+
+								{options.cookieSource === "file" && (
+									<Field>
+										<FieldLabel htmlFor="cookieFile">
+											Cookie File Path
+										</FieldLabel>
+										<Input
+											id="cookieFile"
+											placeholder="/path/to/cookies.txt"
+											value={options.cookieFile}
+											onChange={(e) =>
+												updateOption("cookieFile", e.target.value)
+											}
+										/>
+										<p className="text-xs text-muted-foreground mt-1">
+											Path to Netscape format cookies file
+										</p>
+									</Field>
+								)}
+
+								{options.cookieSource === "browser" && (
+									<>
+										<div className="grid grid-cols-2 gap-4">
+											<Field>
+												<FieldLabel htmlFor="cookieBrowser">Browser</FieldLabel>
+												<Select
+													value={options.cookieBrowser}
+													onValueChange={(value) =>
+														updateOption("cookieBrowser", value)
+													}
+												>
+													<SelectTrigger id="cookieBrowser">
+														<SelectValue />
+													</SelectTrigger>
+													<SelectContent>
+														<SelectGroup>
+															<SelectItem value="chrome">Chrome</SelectItem>
+															<SelectItem value="firefox">Firefox</SelectItem>
+															<SelectItem value="edge">Edge</SelectItem>
+															<SelectItem value="safari">Safari</SelectItem>
+															<SelectItem value="opera">Opera</SelectItem>
+															<SelectItem value="brave">Brave</SelectItem>
+															<SelectItem value="chromium">Chromium</SelectItem>
+															<SelectItem value="vivaldi">Vivaldi</SelectItem>
+														</SelectGroup>
+													</SelectContent>
+												</Select>
+											</Field>
+
+											<Field>
+												<FieldLabel htmlFor="cookieProfile">
+													Profile (Optional)
+												</FieldLabel>
+												<Input
+													id="cookieProfile"
+													placeholder="default"
+													value={options.cookieProfile}
+													onChange={(e) =>
+														updateOption("cookieProfile", e.target.value)
+													}
+												/>
+											</Field>
+										</div>
+										<p className="text-xs text-muted-foreground -mt-2">
+											Extract cookies from your browser. Profile is optional
+											(e.g., "default", "Profile 1")
+										</p>
+									</>
+								)}
 
 								<Field orientation="horizontal" className="items-center">
 									<Checkbox
