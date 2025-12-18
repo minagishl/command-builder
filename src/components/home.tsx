@@ -45,7 +45,7 @@ const TOOLS: Tool[] = [
 		name: "curl",
 		description: "Transfer data with URLs",
 		path: "/curl",
-		available: false,
+		available: true,
 	},
 	{
 		id: "git",

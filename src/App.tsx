@@ -4,6 +4,7 @@ import { Home } from "@/components/home";
 import { Builder as YtDlpBuilder } from "@/components/yt-dlp-builder";
 import { Builder as FFmpegBuilder } from "@/components/ffmpeg-builder";
 import { Builder as ImageMagickBuilder } from "@/components/imagemagick-builder";
+import { Builder as CurlBuilder } from "@/components/curl-builder";
 
 export function App() {
 	return (
@@ -14,6 +15,7 @@ export function App() {
 				<Route path="/yt-dlp" element={<YtDlpBuilder />} />
 				<Route path="/ffmpeg" element={<FFmpegBuilder />} />
 				<Route path="/imagemagick" element={<ImageMagickBuilder />} />
+				<Route path="/curl" element={<CurlBuilder />} />
 			</Routes>
 		</BrowserRouter>
 	);
