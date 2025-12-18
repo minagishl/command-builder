@@ -31,7 +31,7 @@ const TOOLS: Tool[] = [
 		name: "FFmpeg",
 		description: "Convert and process video/audio files",
 		path: "/ffmpeg",
-		available: false,
+		available: true,
 	},
 	{
 		id: "imagemagick",
