@@ -18,17 +18,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-	IconCopy,
-	IconDownload,
-	IconMusic,
-	IconVideo,
-	IconFileText,
-	IconSettings,
-	IconListTree,
-} from "@tabler/icons-react";
+import { IconCopy } from "@tabler/icons-react";
 
 interface YtDlpOptions {
 	url: string;
@@ -271,7 +262,6 @@ export function Builder() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<IconDownload className="h-5 w-5" />
 								Basic Options
 							</CardTitle>
 							<CardDescription>
@@ -347,7 +337,6 @@ export function Builder() {
 										className="h-4 w-4"
 									/>
 									<FieldLabel htmlFor="audioOnly" className="mb-0">
-										<IconMusic className="h-4 w-4 inline mr-2" />
 										Audio Only (Extract Audio)
 									</FieldLabel>
 								</Field>
@@ -394,7 +383,6 @@ export function Builder() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<IconFileText className="h-5 w-5" />
 								Output Options
 							</CardTitle>
 							<CardDescription>
@@ -438,7 +426,6 @@ export function Builder() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<IconVideo className="h-5 w-5" />
 								Subtitle & Metadata
 							</CardTitle>
 							<CardDescription>
@@ -617,7 +604,6 @@ export function Builder() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<IconListTree className="h-5 w-5" />
 								Playlist Options
 							</CardTitle>
 							<CardDescription>
@@ -688,7 +674,6 @@ export function Builder() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center gap-2">
-								<IconSettings className="h-5 w-5" />
 								Advanced Options
 							</CardTitle>
 							<CardDescription>Additional advanced settings</CardDescription>
@@ -940,20 +925,15 @@ export function Builder() {
 										className="font-mono text-sm min-h-32"
 									/>
 								</Field>
-								<div className="flex gap-2">
+								<div className="mt-2 w-full">
 									<Button
 										onClick={copyToClipboard}
 										disabled={!options.url}
-										className="flex-1"
+										className="w-full"
 									>
 										<IconCopy className="h-4 w-4 mr-2" />
 										{copied ? "Copied!" : "Copy Command"}
 									</Button>
-									{copied && (
-										<Badge variant="outline" className="self-center">
-											Copied to clipboard!
-										</Badge>
-									)}
 								</div>
 							</FieldGroup>
 						</CardContent>
