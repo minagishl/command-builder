@@ -35,13 +35,19 @@ interface YtDlpOptions {
 	quality: string;
 	format: string;
 	audioOnly: boolean;
+	audioQuality: string;
 	outputPath: string;
 	outputTemplate: string;
 	subtitles: string;
 	subtitleLang: string;
+	subtitleFormat: string;
 	embedSubtitles: boolean;
 	embedThumbnail: boolean;
 	embedMetadata: boolean;
+	embedChapters: boolean;
+	writeThumbnail: boolean;
+	writeDescription: boolean;
+	writeInfoJson: boolean;
 	playlist: string;
 	playlistStart: string;
 	playlistEnd: string;
@@ -50,6 +56,11 @@ interface YtDlpOptions {
 	cookieFile: string;
 	cookieBrowser: string;
 	cookieProfile: string;
+	sponsorblockRemove: string;
+	sponsorblockMark: string;
+	liveFromStart: boolean;
+	downloadArchive: string;
+	proxy: string;
 	useAria2c: boolean;
 }
 
@@ -59,13 +70,19 @@ export function Builder() {
 		quality: "best",
 		format: "mp4",
 		audioOnly: false,
+		audioQuality: "5",
 		outputPath: "",
 		outputTemplate: "%(title)s.%(ext)s",
 		subtitles: "none",
 		subtitleLang: "en",
+		subtitleFormat: "srt",
 		embedSubtitles: false,
 		embedThumbnail: false,
 		embedMetadata: false,
+		embedChapters: false,
+		writeThumbnail: false,
+		writeDescription: false,
+		writeInfoJson: false,
 		playlist: "all",
 		playlistStart: "",
 		playlistEnd: "",
@@ -74,6 +91,11 @@ export function Builder() {
 		cookieFile: "",
 		cookieBrowser: "chrome",
 		cookieProfile: "",
+		sponsorblockRemove: "none",
+		sponsorblockMark: "none",
+		liveFromStart: false,
+		downloadArchive: "",
+		proxy: "",
 		useAria2c: false,
 	});
 
@@ -97,6 +119,9 @@ export function Builder() {
 				"--audio-format",
 				options.format === "mp4" ? "mp3" : options.format
 			);
+			if (options.audioQuality) {
+				parts.push("--audio-quality", options.audioQuality);
+			}
 		} else {
 			if (options.quality === "best") {
 				parts.push("-f", "bestvideo+bestaudio/best");
@@ -135,16 +160,34 @@ export function Builder() {
 			parts.push("--sub-lang", options.subtitleLang);
 		}
 
+		if (options.subtitles !== "none" && options.subtitleFormat) {
+			parts.push("--sub-format", options.subtitleFormat);
+		}
+
 		if (options.embedSubtitles) {
 			parts.push("--embed-subs");
 		}
 
-		// Metadata
+		// Metadata and embedding
 		if (options.embedThumbnail) {
 			parts.push("--embed-thumbnail");
 		}
 		if (options.embedMetadata) {
 			parts.push("--embed-metadata");
+		}
+		if (options.embedChapters) {
+			parts.push("--embed-chapters");
+		}
+
+		// Write metadata files
+		if (options.writeThumbnail) {
+			parts.push("--write-thumbnail");
+		}
+		if (options.writeDescription) {
+			parts.push("--write-description");
+		}
+		if (options.writeInfoJson) {
+			parts.push("--write-info-json");
 		}
 
 		// Playlist
@@ -159,9 +202,29 @@ export function Builder() {
 			}
 		}
 
+		// SponsorBlock
+		if (options.sponsorblockRemove && options.sponsorblockRemove !== "none") {
+			parts.push("--sponsorblock-remove", options.sponsorblockRemove);
+		}
+		if (options.sponsorblockMark && options.sponsorblockMark !== "none") {
+			parts.push("--sponsorblock-mark", options.sponsorblockMark);
+		}
+
 		// Advanced options
 		if (options.rateLimit) {
 			parts.push("--limit-rate", options.rateLimit);
+		}
+
+		if (options.proxy) {
+			parts.push("--proxy", options.proxy);
+		}
+
+		if (options.downloadArchive) {
+			parts.push("--download-archive", options.downloadArchive);
+		}
+
+		if (options.liveFromStart) {
+			parts.push("--live-from-start");
 		}
 
 		// Cookies
@@ -288,6 +351,41 @@ export function Builder() {
 										Audio Only (Extract Audio)
 									</FieldLabel>
 								</Field>
+
+								{options.audioOnly && (
+									<Field>
+										<FieldLabel htmlFor="audioQuality">
+											Audio Quality
+										</FieldLabel>
+										<Select
+											value={options.audioQuality}
+											onValueChange={(value) =>
+												updateOption("audioQuality", value)
+											}
+										>
+											<SelectTrigger id="audioQuality">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectGroup>
+													<SelectItem value="0">Best (0)</SelectItem>
+													<SelectItem value="2">High (2)</SelectItem>
+													<SelectItem value="5">Medium (5)</SelectItem>
+													<SelectItem value="7">Low (7)</SelectItem>
+													<SelectItem value="9">Worst (9)</SelectItem>
+													<SelectItem value="128K">128K</SelectItem>
+													<SelectItem value="192K">192K</SelectItem>
+													<SelectItem value="256K">256K</SelectItem>
+													<SelectItem value="320K">320K</SelectItem>
+												</SelectGroup>
+											</SelectContent>
+										</Select>
+										<p className="text-xs text-muted-foreground mt-1">
+											0 (best) to 9 (worst) for VBR, or specific bitrate (e.g.,
+											128K, 320K)
+										</p>
+									</Field>
+								)}
 							</FieldGroup>
 						</CardContent>
 					</Card>
@@ -349,7 +447,7 @@ export function Builder() {
 						</CardHeader>
 						<CardContent>
 							<FieldGroup>
-								<div className="grid grid-cols-2 gap-4">
+								<div className="grid grid-cols-3 gap-4">
 									<Field>
 										<FieldLabel htmlFor="subtitles">Subtitles</FieldLabel>
 										<Select
@@ -383,6 +481,29 @@ export function Builder() {
 											}
 											disabled={options.subtitles === "none"}
 										/>
+									</Field>
+
+									<Field>
+										<FieldLabel htmlFor="subtitleFormat">Format</FieldLabel>
+										<Select
+											value={options.subtitleFormat}
+											onValueChange={(value) =>
+												updateOption("subtitleFormat", value)
+											}
+											disabled={options.subtitles === "none"}
+										>
+											<SelectTrigger id="subtitleFormat">
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectGroup>
+													<SelectItem value="srt">SRT</SelectItem>
+													<SelectItem value="ass">ASS</SelectItem>
+													<SelectItem value="vtt">VTT</SelectItem>
+													<SelectItem value="best">Best</SelectItem>
+												</SelectGroup>
+											</SelectContent>
+										</Select>
 									</Field>
 								</div>
 
@@ -427,6 +548,62 @@ export function Builder() {
 										/>
 										<FieldLabel htmlFor="embedMetadata" className="mb-0">
 											Embed Metadata
+										</FieldLabel>
+									</Field>
+
+									<Field orientation="horizontal" className="items-center">
+										<Checkbox
+											id="embedChapters"
+											checked={options.embedChapters}
+											onCheckedChange={(checked: boolean) =>
+												updateOption("embedChapters", checked)
+											}
+											className="h-4 w-4"
+										/>
+										<FieldLabel htmlFor="embedChapters" className="mb-0">
+											Embed Chapters
+										</FieldLabel>
+									</Field>
+
+									<Field orientation="horizontal" className="items-center">
+										<Checkbox
+											id="writeThumbnail"
+											checked={options.writeThumbnail}
+											onCheckedChange={(checked: boolean) =>
+												updateOption("writeThumbnail", checked)
+											}
+											className="h-4 w-4"
+										/>
+										<FieldLabel htmlFor="writeThumbnail" className="mb-0">
+											Write Thumbnail File
+										</FieldLabel>
+									</Field>
+
+									<Field orientation="horizontal" className="items-center">
+										<Checkbox
+											id="writeDescription"
+											checked={options.writeDescription}
+											onCheckedChange={(checked: boolean) =>
+												updateOption("writeDescription", checked)
+											}
+											className="h-4 w-4"
+										/>
+										<FieldLabel htmlFor="writeDescription" className="mb-0">
+											Write Description File
+										</FieldLabel>
+									</Field>
+
+									<Field orientation="horizontal" className="items-center">
+										<Checkbox
+											id="writeInfoJson"
+											checked={options.writeInfoJson}
+											onCheckedChange={(checked: boolean) =>
+												updateOption("writeInfoJson", checked)
+											}
+											className="h-4 w-4"
+										/>
+										<FieldLabel htmlFor="writeInfoJson" className="mb-0">
+											Write Info JSON
 										</FieldLabel>
 									</Field>
 								</div>
@@ -623,6 +800,111 @@ export function Builder() {
 										</p>
 									</>
 								)}
+
+								<Field>
+									<FieldLabel htmlFor="sponsorblockRemove">
+										SponsorBlock Remove
+									</FieldLabel>
+									<Select
+										value={options.sponsorblockRemove}
+										onValueChange={(value) =>
+											updateOption("sponsorblockRemove", value)
+										}
+									>
+										<SelectTrigger id="sponsorblockRemove">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectItem value="none">None</SelectItem>
+												<SelectItem value="sponsor">Sponsor</SelectItem>
+												<SelectItem value="intro">Intro</SelectItem>
+												<SelectItem value="outro">Outro</SelectItem>
+												<SelectItem value="selfpromo">Self Promo</SelectItem>
+												<SelectItem value="interaction">Interaction</SelectItem>
+												<SelectItem value="all">All</SelectItem>
+												<SelectItem value="sponsor,intro,outro">
+													Sponsor + Intro + Outro
+												</SelectItem>
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+									<p className="text-xs text-muted-foreground mt-1">
+										Remove segments from video using SponsorBlock
+									</p>
+								</Field>
+
+								<Field>
+									<FieldLabel htmlFor="sponsorblockMark">
+										SponsorBlock Mark
+									</FieldLabel>
+									<Select
+										value={options.sponsorblockMark}
+										onValueChange={(value) =>
+											updateOption("sponsorblockMark", value)
+										}
+									>
+										<SelectTrigger id="sponsorblockMark">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectItem value="none">None</SelectItem>
+												<SelectItem value="sponsor">Sponsor</SelectItem>
+												<SelectItem value="intro">Intro</SelectItem>
+												<SelectItem value="outro">Outro</SelectItem>
+												<SelectItem value="all">All</SelectItem>
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+									<p className="text-xs text-muted-foreground mt-1">
+										Mark chapters for segments using SponsorBlock
+									</p>
+								</Field>
+
+								<Field>
+									<FieldLabel htmlFor="proxy">Proxy</FieldLabel>
+									<Input
+										id="proxy"
+										placeholder="http://proxy.example.com:8080"
+										value={options.proxy}
+										onChange={(e) => updateOption("proxy", e.target.value)}
+									/>
+									<p className="text-xs text-muted-foreground mt-1">
+										HTTP/HTTPS/SOCKS proxy URL
+									</p>
+								</Field>
+
+								<Field>
+									<FieldLabel htmlFor="downloadArchive">
+										Download Archive
+									</FieldLabel>
+									<Input
+										id="downloadArchive"
+										placeholder="~/downloads/archive.txt"
+										value={options.downloadArchive}
+										onChange={(e) =>
+											updateOption("downloadArchive", e.target.value)
+										}
+									/>
+									<p className="text-xs text-muted-foreground mt-1">
+										Skip videos already in this archive file
+									</p>
+								</Field>
+
+								<Field orientation="horizontal" className="items-center">
+									<Checkbox
+										id="liveFromStart"
+										checked={options.liveFromStart}
+										onCheckedChange={(checked: boolean) =>
+											updateOption("liveFromStart", checked)
+										}
+										className="h-4 w-4"
+									/>
+									<FieldLabel htmlFor="liveFromStart" className="mb-0">
+										Live From Start (Download livestreams from the start)
+									</FieldLabel>
+								</Field>
 
 								<Field orientation="horizontal" className="items-center">
 									<Checkbox
