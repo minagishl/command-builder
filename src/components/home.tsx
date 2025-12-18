@@ -38,7 +38,7 @@ const TOOLS: Tool[] = [
 		name: "ImageMagick",
 		description: "Edit and convert images",
 		path: "/imagemagick",
-		available: false,
+		available: true,
 	},
 	{
 		id: "curl",
