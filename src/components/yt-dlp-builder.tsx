@@ -21,6 +21,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { IconCopy } from "@tabler/icons-react";
 
+/**
+ * Quote a value for safe use in a shell command.
+ * Always uses double quotes and escapes inner quotes/backslashes.
+ */
+const quote = (value: string) => {
+	if (!value) return value;
+	// JSON.stringify gives us a double-quoted, properly escaped string
+	return JSON.stringify(value);
+};
+
 interface YtDlpOptions {
 	url: string;
 	quality: string;
@@ -226,34 +236,36 @@ export function Builder() {
 			parts.push("-x");
 			parts.push(
 				"--audio-format",
-				options.format === "mp4" ? "mp3" : options.format
+				quote(options.format === "mp4" ? "mp3" : options.format)
 			);
 			if (options.audioQuality) {
-				parts.push("--audio-quality", options.audioQuality);
+				parts.push("--audio-quality", quote(options.audioQuality));
 			}
 		} else {
 			if (options.quality === "best") {
-				parts.push("-f", "bestvideo+bestaudio/best");
+				parts.push("-f", quote("bestvideo+bestaudio/best"));
 			} else if (options.quality === "worst") {
-				parts.push("-f", "worstvideo+worstaudio/worst");
+				parts.push("-f", quote("worstvideo+worstaudio/worst"));
 			} else {
 				parts.push(
 					"-f",
-					`bestvideo[height<=${options.quality}]+bestaudio/best[height<=${options.quality}]`
+					quote(
+						`bestvideo[height<=${options.quality}]+bestaudio/best[height<=${options.quality}]`
+					)
 				);
 			}
 
 			if (options.format !== "default") {
-				parts.push("--merge-output-format", options.format);
+				parts.push("--merge-output-format", quote(options.format));
 			}
 		}
 
 		// Output
 		if (options.outputPath) {
-			parts.push("-P", options.outputPath);
+			parts.push("-P", quote(options.outputPath));
 		}
 		if (options.outputTemplate) {
-			parts.push("-o", options.outputTemplate);
+			parts.push("-o", quote(options.outputTemplate));
 		}
 
 		// Subtitles
@@ -266,11 +278,11 @@ export function Builder() {
 		}
 
 		if (options.subtitles !== "none" && options.subtitleLang) {
-			parts.push("--sub-lang", options.subtitleLang);
+			parts.push("--sub-lang", quote(options.subtitleLang));
 		}
 
 		if (options.subtitles !== "none" && options.subtitleFormat) {
-			parts.push("--sub-format", options.subtitleFormat);
+			parts.push("--sub-format", quote(options.subtitleFormat));
 		}
 
 		if (options.embedSubtitles) {
@@ -313,23 +325,23 @@ export function Builder() {
 
 		// SponsorBlock
 		if (options.sponsorblockRemove && options.sponsorblockRemove !== "none") {
-			parts.push("--sponsorblock-remove", options.sponsorblockRemove);
+			parts.push("--sponsorblock-remove", quote(options.sponsorblockRemove));
 		}
 		if (options.sponsorblockMark && options.sponsorblockMark !== "none") {
-			parts.push("--sponsorblock-mark", options.sponsorblockMark);
+			parts.push("--sponsorblock-mark", quote(options.sponsorblockMark));
 		}
 
 		// Advanced options
 		if (options.rateLimit) {
-			parts.push("--limit-rate", options.rateLimit);
+			parts.push("--limit-rate", quote(options.rateLimit));
 		}
 
 		if (options.proxy) {
-			parts.push("--proxy", options.proxy);
+			parts.push("--proxy", quote(options.proxy));
 		}
 
 		if (options.downloadArchive) {
-			parts.push("--download-archive", options.downloadArchive);
+			parts.push("--download-archive", quote(options.downloadArchive));
 		}
 
 		if (options.liveFromStart) {
@@ -338,12 +350,12 @@ export function Builder() {
 
 		// Cookies
 		if (options.cookieSource === "file" && options.cookieFile) {
-			parts.push("--cookies", options.cookieFile);
+			parts.push("--cookies", quote(options.cookieFile));
 		} else if (options.cookieSource === "browser" && options.cookieBrowser) {
 			const browserSpec = options.cookieProfile
 				? `${options.cookieBrowser}:${options.cookieProfile}`
 				: options.cookieBrowser;
-			parts.push("--cookies-from-browser", browserSpec);
+			parts.push("--cookies-from-browser", quote(browserSpec));
 		}
 
 		if (options.useAria2c) {
@@ -352,7 +364,7 @@ export function Builder() {
 
 		// URL (always last)
 		if (options.url) {
-			parts.push(options.url);
+			parts.push(quote(options.url));
 		}
 
 		return parts.join(" ");
